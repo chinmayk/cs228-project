@@ -1,0 +1,34 @@
+digraph model{
+	obsHelp [label="Extrinsic Helpfulness %" style=filled color=lightblue]
+	subgraph truProcess {
+		rank = same
+		truHelp [label="Intrinsic Helpfulness %"]
+		topics  [label="Number of New Topics" style=filled color=lightsalmon]
+	}
+	subgraph noise{
+		rank = same
+		norm    [label="Per-Movie Normalization" style=filled color=lightgrey]
+		winner  [label="Total Number of Reviews" style=filled color=lightgrey]
+		time    [label="Posting Time" style=filled color=lightgrey]
+	}
+	subgraph feats{
+		rank = same
+		lexfeat [label="Lexical Features" style=filled color=lightgrey]
+		strfeat [label="Structural Features" style=filled color=lightgrey]
+		synfeat [label="Syntactic Features" style=filled color=lightgrey]
+		semfeat [label="Semantic Features" style=filled color=lightgrey]
+		metfeat [label="Meta-Info Features" style=filled color=lightgrey]
+	}
+
+	obsHelp->truHelp [style=invis]
+	truHelp->obsHelp [constraint=false]
+	norm->obsHelp
+	winner->obsHelp
+	time->obsHelp
+	topics->truHelp
+	truHelp->lexfeat
+	truHelp->strfeat
+	truHelp->synfeat
+	truHelp->semfeat
+	truHelp->metfeat
+}
