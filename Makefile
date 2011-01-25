@@ -2,15 +2,13 @@
 default: all
 
 model.eps: model.dot
-	dot -Tps -o model.eps model.dot
+	dot -Tpdf -o model.pdf model.dot
 
 proposal.pdf: proposal.tex main.bib model.eps
-	@latex proposal
+	@pdflatex proposal
 	@bibtex proposal
-	@latex proposal
-	@latex proposal
-	@dvips proposal.dvi > /dev/null
-	@ps2pdf proposal.ps > /dev/null
+	@pdflatex proposal
+	@pdflatex proposal
 
 old.pdf: old.tex main.bib fig/exReview.pdf fig/results.pdf
 	@pdflatex old
