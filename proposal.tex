@@ -12,17 +12,8 @@
 
 \begin{abstract}
 This report presents an approach to predicting the helpfulness of a 
-	movie review, taking into account features on the content of the article, 
-	the sentiments present in the article, and the context of the article
-	with respect to previous postings.
-Results are compared loosely against the features presented in
-	the previous work of 
-	\newcite{2006kim-helpfulness}, which most closely resembles this task;
-	however, we test on a different domain (IMDB movie
-	reviews instead of Amazon product reviews).
-
-We show that we improve upon this baseline, achieving a Pearson correlation
-	coefficient of 0.493.
+	movie review, taking an approach which considers new topics introduced over time
+	and which attempts to separate extrinsic {\em noise} factors in intrinsic factors.
 \end{abstract}
 
 
@@ -37,36 +28,21 @@ In this project, we focus on the problem of predicting the (manual) helpfulness 
 \subsection{Approach}
 Instead of modeling the problem as a straightforward regression of rated helpfulness given review features, we imagine instead a model that considers the manual (observed) rating as a random variable that is influenced by factors that are both {\em intrinsic} and {\em extrinsic} to the review. 
 
-We consider a factor intrinsic if it can be predicted based on the text of a review alone. By extension, an extrinsic factor cannot be predicted purely from the text of a review alone. Therefore, our approach is informed by the following two hypotheses. 
+We define a factor intrinsic if it can be predicted based on the text of a review alone. By extension, an extrinsic factor cannot be predicted purely from the text of a review alone. Our approach is informed by the following two hypotheses. 
 
-\bf{Hyp 1:}  The actual helpfulness of a review is dependent on its intrinsic factors alone. 
-We call the 
+{\bf Hyp 1:}  The actual helpfulness of a review (the helpfulness dependent solely on its intrinsic factors) is strongly influenced by the number of new topics the review introduces.
 
-\bf{Hyp 1:} We consider human ratings to be noisy and influenced by both {\em intrinsic} and {\em extrinsic} factors.
+Intuitively, if a review introduces several new topics, it adds a lot more information than a review that does not, and so should be more helpful. 
+
+{\bf Hyp 2:} We consider human ratings to be noisy and influenced by both {\em intrinsic} and {\em extrinsic} factors.
 
 This hypothesis is motivated by the fact that reviews written early on are more likely to be rated as helpful, since a reader has fewer other helpful reviews to compare it with (informally, new reviews have a higher bar to pass to be marked as helpful).
 The helpfulness rating provided by human annotators is considered the {\em extrinsic} helpfulness.
-A more detailed justification for this hypothesis  is provided in \refsec{preliminary-research}.
+
+A more detailed justification for both hypotheses  is provided in \refsec{preliminary}.
 
 \subsection{Applications}
-Automatically assigning helpfulness to an online review has possibly many applications. One application is to predict helpfulness of reviews which do not yet have a well-established human-annotated rating (such as newly-created reviews, or reviews for popular products with several other reviews).  Another application is text summarization. In this case, reviews that are more helpful should receive a higher weighting in the summarization task. Current summarization systems tend to consider all reviews as  equally informative {\em a-priori}.
-
-A last application is to assist corporations marketing their products assess which aspects of the 
-	product the public likes and dislikes~\cite{2007ghose-helpfulness}. The assumption is that higher rated reviews express more prominent opinions, both positive and negative.
-
-
-
-The task of assessing review helpfulness is approached as a regression task:
-Given a training corpus of reviews each with a number of helpful/not-helpful
-	annotations, predict the helpfulness of a new review.
-We approach the task using features based on a set of basic features augmented
-	with additional semantic and temporal features, including sentiment
-	features.
-
-The approach is tested on a subset of the IMDB corpus of movie reviews.
-Although the corpora used in previous work are not available
-	to compare against, the system outperforms an informed baseline consisting
-	of the features presented in \newcite{2006kim-helpfulness}.
+Automatically assigning helpfulness to an online review has possibly many applications. One application is to predict helpfulness of reviews which do not yet have a well-established human-annotated rating (such as newly-created reviews, or reviews for popular products with several other reviews).  Another application is text summarization. In this case, reviews that are more helpful should receive a higher weighting in the summarization task. Current summarization systems tend to consider all reviews as  equally informative {\em a priori}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % IMPLEMENTATION
@@ -90,7 +66,7 @@ The variable we are interested in ({\em Extrinsic Helpfulness \%}) is marked
 A node denoting the number of new topics introduced in the review is marked
 	in red, as it is a placeholder for an embedded topic model.
 
-The essense of the model is to represent the two hypotheses presented in the
+The essence of the model is to represent the two hypotheses presented in the
 	introduction. 
 The decoupling of observations into {\em extrinsic} and
 	{\em intrinsic} influences is done by placing the nodes either at the top
@@ -101,7 +77,7 @@ Observed helpfulness is in turn affected by a notion of intrinsic helpfulness
 The features used for this part of the model align roughly with those of
 	\newcite{2006kim-helpfulness}.
 
-The second hypthesis is modeled by the red node {\em Number of New Topics}.
+The second hypothesis is modeled by the red node {\em Number of New Topics}.
 This will be an implementation of LDA, either trained separately from or
 	jointly with the rest of the model.
 The paper by \newcite{2008titov-summarization} attempts a similar technique
@@ -134,7 +110,7 @@ We have access to this corpus.
 This project builds off of a project done for cs424 last quarter.
 That project consisted of training a simple classifier with features
 	defined both over the {\em extrinsic} and {\em intrinsic} features.
-The results of the project were reasonable (pearson correlation of 0.486)
+The results of the project were reasonable (Pearson correlation of 0.486)
 	though by no means good.
 Furthermore, the most useful features in the model were the ones that
 	effectively modeled the noise in the rating process, suggesting the
