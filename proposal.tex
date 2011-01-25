@@ -1,5 +1,7 @@
 \documentclass[12pt,letterpaper]{article}
+\include{std-macros}
 \usepackage{acl2010}
+\usepackage{graphicx}
 
 \title{Project Proposal for cs228}
 \author{Chinmay Kulkarni and Gabor Angeli}
@@ -10,7 +12,93 @@
 
 \section{Problem Statement}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% IMPLEMENTATION
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{implementation}{Implementation}
+\subsection{Model}
+\FigStar{model}{0.43}{model}{
+	The graphical model proposed to be used in the project.
+	Grey nodes denote observed features; the blue node denotes the
+	variable that is being tested; the red node denotes a feature 
+	derived from a topic model.
+}
+To solve the problem, we intend to employ a directed graphical model.
+The model is shown in \ref{modelFig}.
+Observed variables are colored grey. 
+The Feature variables (i.e. {\em Lexical Features}, {\em Structural Features}, 
+	etc) are compressed into a single node for illustrative purposes;
+	these nodes would either be split into individual features.
+The variable we are interested in ({\em Extrinsic Helpfulness \%}) is marked
+	in blue.
+A node denoting the number of new topics introduced in the review is marked
+	in red, as it is a placeholder for an embedded topic model.
+
+The essense of the model is to represent the two hypotheses presented in the
+	introduction. 
+The decoupling of observations into {\em extrinsic} and
+	{\em intrinsic} influences is done by placing the nodes either at the top
+	of the graph (influencing {\em Observed Helpfulness \%}), or at the bottom
+	(a result of {\em Intrinsic Helpfulness \%}).
+Observed helpfulness is in turn affected by a notion of intrinsic helpfulness
+	in conjunction with the noise factors.
+The features used for this part of the model align roughly with those of
+	\newcite{2006kim-helpfulness}.
+
+The second hypthesis is modeled by the red node {\em Number of New Topics}.
+This will be an implementation of LDA, either trained separately from or
+	jointly with the rest of the model.
+The paper by \newcite{2008titov-summarization} attempts a similar technique
+	for review summarization.
+
+A directed model was chosen since the intuition of the problem appears to
+	align well with a directed model paradigm.
+For instance, {\em True Helpfulness} is a factor in causing the value of
+	{\em Observed Helpfulness}, in conjunction with the other extrinsic
+	causes.
+Similarly, {\em New Topics} causes a higher helpfulness, etc.
+
+\subsection{Training}
+The problem as presented is a supervised training problem.
+Pairs of reviews and their associated observed helpfulness are provided at
+	training time.
+At test time, the task is to predict the observed helpfulness from the review
+	and other reviews from the same item.
+
+The data used for these experiments is taken from the IMDB corpus, which
+	consists of a total of 45,772 movies and 1,808,564 reviews.
+In all likelihood only a small subset of the corpus will be used.
+We have access to this corpus.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PRELIMINARY RESEARCH
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{preliminary}{Preliminary Research}
+
+This project builds off of a project done for cs424 last quarter.
+That project consisted of training a simple classifier with features
+	defined both over the {\em extrinsic} and {\em intrinsic} features.
+The results of the project were reasonable (pearson correlation of 0.486)
+	though by no means good.
+Furthermore, the most useful features in the model were the ones that
+	effectively modeled the noise in the rating process, suggesting the
+	feasibility of {\bf Hyp1}.
+
+Statistics were collected on the dataset to support the two hypotheses.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PREVIOUS WORK
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \section{Previous Work}
+This section details some of the previous work done in the field.
+The first briefly describes one of the first and most prototypical papers
+	on assessing review helpfulness.
+The second presents an approach to jointly performing text summarization
+	and topic modeling; this approach appears relevant to our task.
+
 \subsection{Automatically Assessing Review Helpfulness \cite{2006kim-helpfulness}}
 This paper was the earliest work present in the literature on the subject of assessing review helpfulness.
 The main idea of the paper was to use SVN regression on a large number of features,

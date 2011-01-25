@@ -1,7 +1,10 @@
 
 default: all
 
-proposal.pdf: proposal.tex main.bib
+model.eps: model.dot
+	dot -Tps -o model.eps model.dot
+
+proposal.pdf: proposal.tex main.bib model.eps
 	@latex proposal
 	@bibtex proposal
 	@latex proposal
@@ -21,4 +24,4 @@ clean:
 	rm -f proposal.ps proposal.dvi proposal.pdf
 	rm -f old.ps old.dvi old.pdf
 
-all: proposal.pdf old.pdf
+all: proposal.pdf model.eps old.pdf
