@@ -21,4 +21,5 @@ clean:
 	rm -f proposal.ps proposal.dvi proposal.pdf
 	rm -f old.ps old.dvi old.pdf
 
-all: proposal.pdf old.pdf
+all: proposal.pdf
+
