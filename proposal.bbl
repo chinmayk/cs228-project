@@ -1,0 +1,19 @@
+\begin{thebibliography}{}
+
+\bibitem[\protect\citename{Kim \bgroup et al.\egroup
+  }2006]{2006kim-helpfulness}
+Soo-Min Kim, Patrick Pantel, Tim Chklovski, and Marco Pennacchiotti.
+\newblock 2006.
+\newblock Automatically assessing review helpfulness.
+\newblock In {\em Proceedings of the 2006 Conference on Empirical Methods in
+  Natural Language Processing}, pages 423--430, Sydney, Australia, July.
+  Association for Computational Linguistics.
+
+\bibitem[\protect\citename{Titov and McDonald}2008]{2008titov-summarization}
+Ivan Titov and Ryan McDonald.
+\newblock 2008.
+\newblock A joint model of text and aspect ratings for sentiment summarization.
+\newblock In {\em Proceedings of ACL-08: HLT}, pages 308--316, Columbus, Ohio,
+  June. Association for Computational Linguistics.
+
+\end{thebibliography}

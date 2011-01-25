@@ -19,9 +19,10 @@ old.pdf: old.tex main.bib fig/exReview.pdf fig/results.pdf
 	@pdflatex old
 
 clean:
+	rm -f model.eps
 	rm -f *.aux *.bbl *.log
 	rm -f *.aux *.blg *.log
 	rm -f proposal.ps proposal.dvi proposal.pdf
 	rm -f old.ps old.dvi old.pdf
 
-all: proposal.pdf model.eps old.pdf
+all: proposal.pdf model.eps
