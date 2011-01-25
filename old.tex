@@ -1,0 +1,709 @@
+\documentclass[letter,10pt]{article}
+\usepackage{acl2010}
+\usepackage{times}
+\usepackage{latexsym,color,amsmath,amssymb,graphicx}
+\usepackage{multirow}
+\usepackage{rotating}
+\usepackage{stmaryrd} % For double brackets
+
+\input std-macros
+
+\title{Predicting Review Helpfulness on IMDB Movie Reviews}
+\author{Gabor Angeli}
+%------------------------------------------------------------------------------%
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This report presents an approach to predicting the helpfulness of a 
+	movie review, taking into account features on the content of the article, 
+	the sentiments present in the article, and the context of the article
+	with respect to previous postings.
+Results are compared loosely against the features presented in
+	the previous work of 
+	\newcite{2006kim-helpfulness}, which most closely resembles this task;
+	however, we test on a different domain (IMDB movie
+	reviews instead of Amazon product reviews).
+
+We show that we improve upon this baseline, achieving a Pearson correlation
+	coefficient of 0.493.
+\end{abstract}
+
+%--INTRODUCTION----------------------------------------------------------------%
+\Section{intro}{Introduction}
+Automatically assigning helpfulness to an online review is a task which has
+	many applications.
+For instance, many reviews have few or no human annotated ratings; this
+	may be the case for infrequently visited reviews, or for new reviews.
+An automatic helpfulness prediction method could help rate such reviews.
+
+The motivation for automatic assessment of review helpfulness is many-fold.
+One motivation is to predict helpfulness of reviews which do not yet have 
+	a well-established human-annotated rating.
+This is often the case for new reviews, which never receive user attention, 
+	since they are not displayed near the top of the page by merit of either 
+	being an early review, or being a well-liked review.
+On a similar note, reviews which are thoroughly reviewed tend to garner 
+	more attention than those which are not, and therefore the established 
+	reviews tend to receive the most additional helpfulness ratings,
+	independently of whether they are in fact the best reviews.
+
+Another motivation is for text summarization.
+In this case, reviews which are deemed to be the most helpful should receive 
+	a higher weighting in the summarization task. 
+Current summarization systems tend to consider all reviews as 
+	equally informative a-priori.
+
+A last motivation, given in \newcite{2007ghose-helpfulness}, is to 
+	assist corporations marketing their products assess which aspects of the 
+	product the public likes and dislikes.
+The assumption is that higher rated reviews express more prominent opinions, 
+	both positive and negative.
+
+The task of assessing review helpfulness is approached as a regression task:
+Given a training corpus of reviews each with a number of helpful/not-helpful
+	annotations, predict the helpfulness of a new review.
+We approach the task using features based on a set of basic features augmented
+	with additional semantic and temporal features, including sentiment
+	features.
+
+The approach is tested on a subset of the IMDB corpus of movie reviews.
+Although the corpora used in previous work are not available
+	to compare against, the system outperforms an informed baseline consisting
+	of the features presented in \newcite{2006kim-helpfulness}.
+
+
+%--PRIOR WORK------------------------------------------------------------------%
+\Section{prevWork}{Previous Work}
+%--Overview
+Previous work focuses on assessing helpfulness in the context of
+	predicting the helpfulness ranking for a product \cite{2006kim-helpfulness},
+	low-quality review filtering \cite{2007liu-helpfulness}, or
+	as a tool for sentiment summarization \cite{2008titov-summarization},
+	among other applications.
+
+%--Kim
+The work by \newcite{2006kim-helpfulness} was the earliest work present 
+	in the literature on the subject of assessing review helpfulness.
+The central theme of the paper was to use SVM regression to predict the
+	ordering of reviews using a fairly large feature set.
+
+The dataset used by the paper was a corpus of Amazon reviews, in the categories
+	of {\em MP3 Players} and {\em Digital Cameras}.
+The dataset consisted of 821 products and 33,016 reviews for {\em MP3 Players},
+	and 1,104 products and 26,189 reviews for {\em Digital Cameras}.
+
+We mimic the approach presented in the paper, 
+	however we report results on the predicted percentage
+	of people who would find a review helpful matched with the gold standard.
+That is, we predict the value of $h$, defined as:
+
+\begin{equation}
+	h(r \in R) = \frac{rating_+(r)}{rating_+(r)+rating_-(r)}
+\end{equation}
+
+Unlike the paper, only the Pearson and not Spearman correlation coefficients
+	are reported, as our modified task is not particularly suited for
+	evaluation using Spearman correlation.
+
+We also adopt their feature set as a baseline to expand from (see
+	\refsec{features}).
+
+%--Liu (low quality filtering)
+Work by \newcite{2007liu-helpfulness} focused on detecting
+	low quality reviews. 
+The paper again uses an dataset from Amazon reviews, using only the
+	{\em Digital Cameras} portion of the corpus.
+
+Several new factors are introduced in the paper;
+	notably, the {\em winner circle bias} and the {\em early bird bias}.
+The first notes that reviews which have a high helpfulness rating
+	are more likely to receive more helpful ratings.
+The second notes that early reviews are often thought 
+	disproportionately helpful.
+
+The paper accounts for these factors by manually re-annotating their
+	training data; in contrast, we attempt to learn these biases via 
+	features.
+In addition, we adopt a regression task rather than the bad-review
+	classification task of the paper.
+
+%--Others
+Other work has been done on helpfulness analysis (see
+	\newcite{2007ghose-helpfulness}; \newcite{2008liu-helpfulness};
+	\newcite{2008titov-summarization}; {\em inter alia}).
+Our approach however does not adopt significant aspects of these,
+	and unfortunately does not compare against their results.
+
+
+%--APPROACH--------------------------------------------------------------------%
+\Section{setup}{Approach}
+The task presented is predicting the helpfulness of a review given
+	features on the review, its associated movie, and the other reviews
+	posted.
+
+Experiments were performed on a subset of the IMDB corpus (described in
+	\refsec{data}) and trained using Linear Regression (described in
+	\refsec{training}). 
+Features used in training are described in more detail in 
+	\refsec{features}.
+
+\Subsection{data}{Data}
+The reviews used in this paper were taken from the IMDB corpus: a collection
+	of movie reviews from the site {\tt http://imdb.com}.
+The corpus contains a total of 45,772 movies and 1,808,564 reviews.
+The text of the reviews was cleaned of
+	special (non-ascii) characters;
+	if possible, these terms were replaced with the ascii base of the character
+	(e.g. removing accents), otherwise the character was replaced
+	with a space.
+Reviews were tokenized using the heuristic document preprocessor included
+	in the {\tt JavaNLP} distribution.
+
+Due to practical limitations, only a subset of the corpus was used;
+	this subset used the first 1,000 movies (33,697 reviews) 
+	for training, and the subsequent 250 movies (11,365 reviews) for testing.
+This is comparable in size to the corpora of previous work.
+Development was done on a smaller subset of 100 movies for training
+	and 25 movies for test, tuning on the training data of this smaller
+	subset.
+
+Reviews which had no helpfulness feedback were discarded from both the
+	training and test sets, resulting in a corpus of 25,399 training
+	reviews and 8833 reviews for testing.
+Discarding reviews with few (e.g. less than 5) helpfulness responses
+	from the training data did not appear to help performance,
+	in part perhaps due to mis-training features which depend on the
+	number of reviews.
+
+A sample review is shown in \reffig{sampleReview}.
+
+
+\FigStar{fig/exReview}{0.40}{sampleReview}{
+	Example review (truncated), including meta-data.
+	This review was taken from the movie
+	{\em Star Trek: New Voyages To Serve All My Days (2006)}; the movie's
+	meta-data has been omitted.
+}
+
+\Subsection{training}{Training}
+Training was attempted using both SVM and linear regression; linear regression
+	was deemed more reliable and is thus the method used in the reported
+	results.
+The values of the features in the dataset were scaled to between 0 and 1
+	before passing them into the regression model; training took around 20 minutes.
+
+Both SVM and linear regression suffered from over-fitting on prolific features
+	such as the unigram and bigram features (see Section \ref{lexical}).
+Linear regression did not scale up to larger training corpus sizes due to
+	memory constraints, whereas SVM regression exhibited severe over-fitting even
+	on large training sets.
+Therefore, the unigram and bigram features were not used.
+
+The SVM regression model, when used, was based on a Radial Basis Function (RBF)
+	kernel, with hyperparameters $C$ (misclassification cost) set to 0.25
+	and $\gamma$ (for the RBF kernel) set to 0.01.
+
+\Subsection{lda}{Topic Modeling}
+Although not used in this implementation, a topic model was trained
+	on the dataset in an attempt to automatically capture relevant
+	themes in reviews.
+
+Attempts at training an LDA topic model were made both treating reviews
+	as documents within a single movie, and treating reviews as documents
+	among all movies.
+In both cases, the topics appeared too disorganized to be used as useful
+	features. 
+When topics were logical, they tended to cluster proper nouns, notably
+	names of actors, or countries.
+
+An example of topics extracted can be found in Table \ref{topics}, taking
+	an optimistic sampling of the topics present. 
+These topics were extracted
+	from a training corpus of 100 movies (2152 reviews).
+
+\begin{table}
+\begin{center}
+\begin{tabular}{c|c|c|c}
+Topic 1 & Topic 2 & Topic 3 & ... \\
+\hline
+Lon & Russia & Best & \\
+Anne & French & Madhumati & \\
+BURN & contest & , & \\
+Paula & genre & Raja & \\
+THE & Soviet & Anand & \\
+\end{tabular}
+\caption{
+\label{topics}
+Sample topics produced by the LDA topic model, although the topics were
+	not used.
+The model was trained on 2152 reviews using 10 topics, for 100 iterations.
+}
+\end{center}
+\end{table}
+
+
+%--FEATURES--------------------------------------------------------------------%
+\Section{features}{Features}
+Features extracted of the reviews were chosen to capture three 
+	types of phenomena:
+\begin{itemize}
+	\item {\bf Linguistic and Meta Features}: Features over the structure and syntactic content of the review.
+	Grouped with this category are also the meta-features over the review.
+	\item {\bf Semantic Features}: Features over the semantic content of the review
+	\item {\bf Temporal Features}: Features over the temporal positioning of the review with respect to other reviews
+\end{itemize}
+
+These three types of features are described in more detail below.
+Note that not all of these features are used in evaluation;
+	for example the n-gram features are too sparse to be useful.
+The complete list is given to illustrate techniques attempted, 
+	and to compare with the features of previous work.
+
+In addition to these features, which are intended to be largely
+	domain-independent and general purpose, a feature is defined over
+	the average helpfulness of other reviews on a movie 
+	(see \refsec{averating}).
+
+\Subsection{ling}{Linguistic Features}
+These features mirror the feature set proposed by \newcite{2006kim-helpfulness},
+	however similar features are proposed in \newcite{2007liu-helpfulness} and
+	\newcite{2008liu-helpfulness}.
+
+\paragraph{Structural Features}
+Features over the review's structure, formatting, and length. 
+These features include the length of the review ({\tt LEN}), 
+	the number of sentences ({\tt SENcount}),
+	the average sentence length ({\tt SENavelen}),
+	as well as the number of questions ({\tt SENquestions})
+	and exclamations ({\tt SENexclams}).
+
+\paragraph{Lexical Features}\label{lexical}
+Local features over the unigram ({\tt UGR} and 
+	bigrams ({\tt BGR}) of the review.
+As per \newcite{2006kim-helpfulness}, {\em tf-idf} statistics were computed
+ on the n-gram counts and used as features.
+
+\paragraph{Syntactic Features}
+Features were extracted over the Part of Speech tags of the reviews ({\tt SYN}).
+Notably, the percent of the review corresponding to each POS tag was counted
+	and used as a feature. 
+This is a generalization of the technique of \newcite{2006kim-helpfulness}.
+POS tagging was done using the Stanford MaxEnt tagger, using the
+	{\em left3words} model trained on the Wall Street Journal.
+
+\paragraph{Meta-Features}
+The reviewer's rating of the movie ({\tt RATING}) on a scale from 1 to 10
+	was included as a feature.
+
+Additionally, a feature was extracted to account for the {\em Winner's circle}
+	bias described first in \newcite{2007liu-helpfulness}.
+The feature ({\tt WIN}) counts the total number of helpful/unhelpful
+	ratings given to a review.
+
+
+\Subsection{semantic}{Semantic Features}
+Similar to the approach of \newcite{2006kim-helpfulness}, we incorporate
+	features over relevant {\em Product Features} ({\tt PRF}); 
+	the term originates from the context of Amazon reviews.
+In the case of the IMDB dataset, these entailed relevant movie-related keywords,
+	extracted automatically from {\tt http://www.filmsite.org/filmterms.html};
+these terms were scraped from the internet and cleaned of quotes,
+	terms in parentheses, and special html characters.
+The scope of the terms ranged from familiar concepts (e.g. {\em satire}, 
+	{\em VCR}) to technical phrases (e.g. {\em pixillation}, {\em chiaroscuro}).
+In total, there are 414 such terms.
+
+Furthermore, features were extracted over sentiment words attached to these
+	{\em Product Features} ({\tt SENTIprf}).
+The intention is to capture phrases such as {\em great plot} or
+	{\em exciting role}.
+These features were extracted using a simple heuristic approach:
+a word appearing before a {\em Product Feature} is assumed to be a modifier
+	on the feature.
+If it has sentiment-information, a feature is extracted over the sentiment
+	type and the product feature in question.
+Sentiment information is taken from the {\em General-Inquirer}.
+All sentiment classes are used.
+
+Furthermore, features are extracted over the prevalence of sentiment words
+	in the document as a whole ({\tt SENTI}).
+These sentiments are again taken from the {\em General-Inquirer};
+	each word is classified into its possible sentiments, and the count
+	of that sentiment in the review is incremented.
+Word senses are not disambiguated, although future work could make use of
+	POS information to limit the sentiments extracted for each word.
+
+Sentiment features were extracted over the count of each 
+	sentiment type based on the number of words in the review
+	expressing that sentiment.
+Due to the large number of categories in the {\em General-Inquirer} database,
+	only a subset are used as features.
+This subset was chosen by manual inspection of the correlations between
+	the sentiment category and helpfulness on the first 1000 movies
+	(the training set).
+The full list of sentiment categories used is given in \reftab{sentiments};
+	in general, most of the main categories and categories which
+	describe conventional sentiments are kept.
+
+
+\begin{table}
+\begin{center}
+\scalebox{0.9}{
+\begin{tabular}{l|l}
+{\em General Inquirer} \\ Sentiment & Description \\
+\hline
+Positiv & positive outlook \\
+Negativ & negative outlook \\
+Strong  & strength \\
+Weak    & weakness \\
+Active  & active orientation \\
+Passive & passive orientation \\
+EMOT    & related to emotion \\
+Means   & means of attaining goals \\
+Eval@   & judgment and evaluation \\
+FREQ    & assessment of frequency \\
+IAV     & explanation of an action \\
+HU      & general references to humans \\
+Econ@   & commercial, industrial, or business \\
+Milit   & military matters \\
+Polit@  & clear political character \\
+Role    & human behavior patterns \\
+Kin     & kinship \\
+Female  & referring to women \\
+MALE    & referring to men \\
+ANI     & referring to animals \\
+\end{tabular}
+}
+\caption{\label{tab:sentiments}
+	List of {\em General Inquirer} terms used in sentiment features.
+	Sentiments not in this list are ignored, due to the large number
+	of categories which are not useful for this task.
+}
+\end{center}
+\end{table}
+
+Lastly, a feature is defined as the percentage of the article which is
+	written in all caps ({\tt CAPS}), which tends to convey some information
+	about the reviewer.
+
+\Subsection{temporal}{Temporal Features}
+The last aspect the system attempted to capture was a temporal relationship
+	between reviews.
+Notably, in general, later reviews tend to be marked less helpful than early
+	ones (this is described as the {\em early-bird bias} in 
+	\newcite{2007liu-helpfulness}).
+Features were extracted both attempting to capture this general trend,
+	and -- although somewhat naively -- attempting to capture the conjecture
+	that this drop off is from reviews repeating similar topics.
+That is to say that helpful reviews are ones that introduce new information.
+
+In the first category, features are extracted over the review's index
+	with respect to its post time ({\tt INDEX}), as well as over the
+	seconds elapsed since the first review was posted ({\tt TIME}).
+
+In the second category, a feature is extracted over the percentage of unique
+	words in the review which do not appear in any previously posted review
+	({\tt NEWWORDS}).
+This is a simplification of a feature over novel topics introduced in each
+	review, as trained by an LDA topic model.
+However, the topics extracted by the model were found to be of poor quality,
+	both within a single movie considering reviews as documents,
+	and across movies considering either reviews or movies as documents
+	(see \refsec{lda})
+
+\Subsection{averating}{Other Review Helpfulness}
+The IMDB corpus exhibits the peculiar phenomenon that movies tend towards
+	having either mostly helpful rated or mostly unhelpful rated reviews.
+That is, a review on a movie is likely to have a similar helpfulness
+	percent as other reviews on that movie.
+
+We describe this phenomenon with a feature ({\tt OTHER\_RATINGS}), which
+	takes the value of the helpfulness of all of the other reviews
+	for the given review's movie.
+Note that the particular review in question is not included in this average.
+
+This feature proves particularly well correlated with helpfulness
+	(see \reffig{graphOtherReview}), however
+	is also very specific to the phenomenon observed in the IMDB corpus.
+Furthermore, looking at the helpfulness of other reviews at test time
+	has an air of cheating around it; for instance, this feature
+	prohibits classifying multiple unlabeled reviews in bulk, as each
+	review will depend on the result of classifying the others.
+
+None the less, the feature is included in the results reported.
+
+\Fig{fig/plot/helpfulGivenOtherReviewsAve.png}{0.30}{graphOtherReview}{
+	The correlation between the average helpfulness of other reviews
+	in the same movie, and the review in question.
+	For example, in the raw graph, a movie with three reviews 
+	rated at 0.0, 0.5, and 1.0 would
+	be represented as three points \{(0.75,0.0),(0.5,0.5),(0.25,1.0)\}.
+	To reduce clutter, this graph averages the Helpfulness ($y$) values
+	for 1000 buckets of Other Review Helpfulness ($x$).
+}
+
+%--RESULTS---------------------------------------------------------------------%
+\Section{results}{Results}
+
+\Subsection{featureSets}{Feature Sets Evaluated}
+
+Roughly following the classification of features from \refsec{features}, we
+	can group the full feature set into three broad categories:
+
+\begin{itemize}
+\item {\tt KIM} denotes the lexical features similar to the system
+	of \newcite{2006kim-helpfulness}, with the addition of the
+	product feature ({\tt PRF} and {\tt SENTIprf}) features.
+	
+	In the absence of previous work to compare to, this feature set serves
+	as the baseline system.
+\item {\tt KIM+TIME} denotes the above feature set combined with the
+	temporal features
+\item {\tt KIM+SEM} denotes the {\tt KIM} feature set combined
+	with the remaining semantic features ({\tt SENTI} and {\tt CAPS})
+\item {\tt KIM+TIME+SEM} denotes the union of all of the above features
+\item {\tt OTHER\_RATINGS} denotes the feature over the average helpfulness
+	rating of other reviews for the given movie (see \refsec{averating})
+\item {\tt ALL} denotes the complete set of features. That is,
+	{\tt KIM+TIME+SEM} in addition to {\tt OTHER\_RATINGS}.
+\end{itemize}
+
+Each of these was evaluated using the Pearson correlation coefficient
+ 	with respect to the gold labeled accuracy:
+
+\begin{equation}
+	\rho_{X,Y} = \frac{cov(X,Y)}{\sigma_X \sigma_Y}
+\end{equation}
+
+\Subsection{analysis}{Analysis of Results}
+
+The results of running the system on each feature set is given
+	in \reftab{results}.
+A bar graph of the same results is shown in \reffig{result}.
+The best performing feature set is, predictably, the {\tt ALL} feature set
+	with a Pearson correlation of 0.493.
+A graph of the output of the system on that feature set is showin
+	in \reffig{plotResult};
+	since no pruning of the data was done based on number of helpful
+	ratings, many 'Gold' points lie along common fractions.
+
+\FigStar{fig/results}{0.50}{result}{
+	Pearson correlation for different feature sets (see \refsec{featureSets}).
+	The highest value is on the {\tt ALL} feature set, denoted in brown.
+	Note that adding both temporal and semantic features improve performance,
+	and the addition of features compound on each other.
+}
+
+\begin{table}
+\begin{center}
+\scalebox{1.0}{
+\begin{tabular}{l|c|c}
+Feature Set &  Pearson (train) & Pearson (test) \\
+\hline
+{\tt KIM} & 0.225 & 0.106 \\
+{\tt KIM+TIME} & 0.312 & 0.212 \\
+{\tt KIM+SEM} & 0.308 & 0.260 \\
+{\tt KIM+TIME+SEM} & 0.352 & 0.299 \\
+{\tt ALL} & {\bf 0.486} & {\bf 0.493} \\
+{\tt OTHER\_RATINGS} & 0.435 & 0.458 \\
+\end{tabular}
+}
+\caption{\label{tab:results}
+	Pearson correlation for different feature sets (see \refsec{featureSets}).
+}
+\end{center}
+\end{table}
+
+\FigStar{fig/plot/results.png}{0.60}{plotResult}{
+	Plot of the results from the {\tt ALL} feature set;
+	Each point corresponds to a (guess,gold) pair.
+	Note the prevalence of reviews at the rounded intervals
+	(e.g. 1.0, 0.0, 0.5, 0.33, 0.66) in the gold data, resulting
+	in horizontal lines at those positions.
+}
+
+A number of interesting conclusions arise from the results.
+Among them, the conspicuously low score of the {\tt KIM} feature
+	set, which would be expected to perform comparably to
+	the dataset of \newcite{2006kim-helpfulness}.
+A possible explanation for this is the lack of the unigram feature
+	in our experiments, which was among the more expressive features
+	presented in their paper.
+In fact, on small scale experiments, adding the unigram feature significantly
+	improved performance on the training set, to the point of near-memorization
+	however; this improvement did not translate to the test set.
+It's possible that the Amazon review dataset has a significantly smaller
+	vocabulary (or equivalently, are shorter), making the feature effective
+	on that dataset but not on the IMDB corpus.
+
+Furthermore, the length of the review ({\tt LEN} feature) -- another feature
+	which was found to be significant by \newcite{2006kim-helpfulness} --
+	was not found to be overly useful in the IMDB domain.
+These two features account for two of the three features which they conclude
+	are the most useful (the third being {\tt RATING}).
+This would explain
+	the dramatic difference in performance of the feature set between
+	the two domains.
+
+The second peculiar result is the disproportionate influence the
+	{\tt OTHER\_RATINGS} feature has on the correlation.
+This likely indicates either that certain movies are more prone
+	to have positive helpfulness feedback (e.g. 'nicer' people
+	visit those pages);
+	or else that there is another instance of the {\em winner's circle}
+	bias occurring, where a user is hesitant to mark a review as helpful
+	if there are few helpful votes overall on the page, and visa versa.
+
+\Subsection{classification}{Classification}
+In addition to regression, the same model can perform classification of
+	reviews into {\em helpful} or {\em not helpful} reviews, defined
+	as being above or below a certain threshold.
+With a threshold of 0.5, the system achieves an accuracy of 69.9\% on the
+	training data, and 74.0\% on the test data.
+The naive baseline for this task -- in this case, always 
+	guessing {\em unhelpful} -- achieves an accuracy of 54.2\% on 
+	the training data, and 62.9\% on the test data.
+
+While this is not a groundbreaking feat of  accuracy (11.1\% improvement
+	over majority guess), it serves as a proof of concept for the task,
+	and as a sanity check for the correlation result.
+
+
+%--DISCUSSION------------------------------------------------------------------%
+\Section{discussion}{Discussion}
+
+\Subsection{featureMotivation}{Motivation for New Features}
+This section aims to show that the new features introduced in this system
+	are, in fact, correlated with helpfulness. 
+Note that these correlations are not necessarily independent;
+	also keep in mind that the plots of these correlations are over
+	average values in buckets, and thus the correlation seems
+	deceptively strong (in contrast, the raw data often appears
+	as a uniform blob of dots).
+None the less, they provide some interesting insights.
+
+\paragraph{CAPS feature}
+The conjecture the feature captures is that reviewers who often post in 
+	all-caps are likely to be less helpful, either because the reader
+	dislikes the style, or because all caps is often an indicator
+	of text that is written hastily and without proper thought.
+This conjecture is shown plausible (see \reffig{plotCaps}); reviewers
+	who use no or very few all-caps words are on average considered
+	more helpful.
+
+\Fig{fig/plot/helpfulGivenCapsAve.png}{0.30}{plotCaps}{
+	The correlation between the number of words in a review which
+	are upper-case, that is contain an upper case character and no 
+	lower case characters, and the helpfulness of the review.
+	To reduce clutter, this graph averages the Helpfulness ($y$) values
+	for each of 1000 buckets ($x$).
+}
+
+\paragraph{TIME feature}
+The conjecture captured by the feature is that reviews which are posted
+	late happen to get rated less helpful.
+While this feature proved true for the {\tt INDEX} feature
+	(conforming to the exponential dropoff described in
+	\newcite{2007liu-helpfulness}), the {\tt TIME} feature behaves
+	somewhat strangely (see \reffig{plotTime}).
+Namely, helpfulness increases until around 6 years after the first post,
+	and then decreases sharply until around 12 years after the first post.
+The reason for the discrepancy between this and the normal
+	review index-wise exponential drop off is be interesting.
+
+\Fig{fig/plot/helpfulGivenReviewPostTimeAve.png}{0.30}{plotTime}{
+	The correlation between the number of seconds since the first
+	review of the movie was posted, and the helpfulness of the review.
+	To reduce clutter, this graph averages the Helpfulness ($y$) values
+	for each of 1000 buckets ($x$).
+}
+
+\paragraph{{\tt NEWWORDS} feature}
+This feature provides a naive substitute for analysis of new concepts being
+	introduced in a review. 
+The conjecture is that reviews which introduce new ideas (and, consequently,
+	likely have many new words) are more helpful.
+This correlation is plotted in \reffig{plotNewWords};
+	in general the assumption seems valid that reviews which introduce
+	new words are more helpful, although the shape of the function
+	is not quite linear.
+
+\Fig{fig/plot/helpfulGivenNewWordsAve.png}{0.30}{plotNewWords}{
+	The correlation between the percentage of unique words in the review
+	which do not appear in any previous review,
+	and the helpfulness of the review.
+	To reduce clutter, this graph averages the Helpfulness ($y$) values
+	for each of 1000 buckets ($x$).
+}
+
+
+\Subsection{future}{Future Directions}
+The project leaves open a number of interesting questions.
+Perhaps most apparent would be the question of why the {\tt OTHER\_RATINGS}
+	feature is so effective, and by extension, whether it is possible
+	to simulate its effect without needing to view the helpfulness
+	of the other reviews.
+Perhaps certain features of the movie being reviewed influence the
+	rater's disposition towards rating a review as helpful.
+
+This would allow the system to predict to be applied to situations where
+	batches of reviews should be annotated with their helpfulness.
+Furthermore, this would allow for a significantly cleaner setup for
+	annotating a new review's helpfulness given only the previous
+	reviews;
+	no other feature requires looking ahead in time.
+
+A more involved, and more interesting, direction would be coercing
+	the topic model to output intelligent topics, which could be used
+	to extract richer semantic features.
+As preliminary motivation we can see that some of the sentiment features,
+	which in reality encode topics, do in fact correlate with
+	review helpfulness.
+For instance, the {\em Inquirer} category {\tt HU} (general references
+	to humans) correlates notably with helpfulness
+	(see \reffig{plotHu}).
+These tend to be words associated with professions (e.g. Novelist, Orator,
+	Janitor) or roles (e.g. Intruder, Grandma, Freshman);
+	this and similar topics seem reasonable to extract from a topic model.
+
+\Fig{fig/plot/sentiment/helpfulGivenSentiment_HUAve.png}{0.30}{plotHu}{
+	The correlation between the number of words in a review which
+	are tagged with the {\tt HU} {\em Inquirer} sentiment, and the
+	helpfulness of the review.
+	To reduce clutter, this graph averages the Helpfulness ($y$) values
+	for each count ($x$).
+}
+
+Another interesting extension of the project would be to structure the problem
+	more.
+Notably, there appear to be two factors affecting review helpfulness:
+	the quality of the language and content of the review,
+	and a series of meta-factors (e.g. the {\em winner's circle} and
+	{\em early bird} biases.
+Most of the time, the value we are interested in is the helpfulness
+	of the review as determined solely by the first of these two factors.
+It would therefore be interesting to structure the problem in such a way
+	that this 'true' helpfulness is a latent variable, which is subjected
+	to the 'noise' of various meta-factors to produce our observed data.
+
+A system which does this would also fairly trivially define a summarization
+	system, which would take the most helpful bits of reviews and
+	aggregate them.
+
+\Section{conclusion}{Conclusion}
+This report presents an approach to assessing the helpfulness of reviews.
+While building on the framework of previous approaches, it introduces
+	richer temporal features, as well as a naive topical features.
+Results are presented which improve significantly on a baseline set of 
+	features from \newcite{2006kim-helpfulness}, achieving a reasonable
+	Pearson correlation coefficient.
+Natural future directions are enhancing the topical features, and
+	decoupling the 'noise' aspects of classification from the aspects
+	we care about more.
+
+
+\bibliographystyle{acl}
+\bibliography{main}
+\end{document}

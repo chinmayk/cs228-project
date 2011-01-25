@@ -1,0 +1,15 @@
+train
+test
+Pearson Correlation
+0.1
+0.2
+0.3
+0.4
+0.5
+correlation ($\rho$)
+{\tt KIM}
+{\tt KIM+TIME}
+{\tt KIM+SEM}
+{\tt KIM+TIME+SEM}
+{\tt ALL}
+{\tt OTHER\_RATINGS}
