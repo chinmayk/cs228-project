@@ -1,59 +1,16 @@
 \documentclass[12pt,letterpaper]{article}
 \usepackage{acl2010}
 
-\title{Literature Review (cs424)}
-\author{Gabor Angeli}
+\title{Project Proposal for cs228}
+\author{Chinmay Kulkarni and Gabor Angeli}
 
 \begin{document}
 
 \maketitle
 
-\section{Task Definition}
-For this literature review, papers were chosen in the area of automatically predicting review helpfulness.
-The task is generally applied to domains where there are annotated training examples in which
-	reviewers can not only rate a product/service, but also rate the helpfulness of another
-	reviewer's comment.
-The two primary such domains covered were Amazon reviews (particularly cameras and mp3 players) 
-	and IMDB movie reviews, among a few others.
+\section{Problem Statement}
 
-The motivation for this task is many-fold.
-One motivation given in the literature is to predict helpfulness of reviews which do not yet have a well-established
-	human-annotated rating.
-This is often the case for new reviews, which never receive user attention, since they are not displayed
-	near the top of the page by merit of either being an early review, or being a well-liked review.
-On a similar note, reviews which are thoroughly reviewed tend to garner more attention than those which
-	are not, and therefore the established reviews tend to receive the most additional helpfulness ratings,
-	independently of whether they are in fact the best reviews.
-
-Another motivation is for text summarization.
-In this case, reviews which are deemed to be the most helpful should receive a higher weighting in the
-	summarization task. 
-Current summarization systems tend to consider all reviews as equally informative a-priori.
-
-A last motivation, given in \newcite{2007ghose-helpfulness}, is to assist corporations marketing their
-	products assess which aspects of the product the public likes and dislikes.
-The assumption is that higher rated reviews express more prominent opinions, both positive and negative.
-
-Five articles are included in this literature review. 
-Three of them deal directly with assessing the
-	helpfulness of user reviews (\newcite{2006kim-helpfulness}, \newcite{2007liu-helpfulness}, 
-	\newcite{2008liu-helpfulness}).
-Another approaches the problem with a business-oriented motivation \cite{2007ghose-helpfulness}.
-The last deals with sentiment summarization, and is included as an in-depth exploration
-	of one of the applications of helpfulness prediction \cite{2008titov-summarization}.
-
-
-The articles included in the literature review are:
-
-\begin{itemize}
-	\item \newcite{2006kim-helpfulness}: {\em Automatically Assessing Review Helpfulness.}
-	\item \newcite{2007liu-helpfulness}: {\em Low-Quality Product Review Detection in Opinion Summarization.}
-	\item \newcite{2008liu-helpfulness}: {\em Modeling and Predicting the Helpfulness of Online Reviews.}
-	\item \newcite{2007ghose-helpfulness}: {\em Designing novel review ranking systems: predicting the usefulness and impact of reviews.}
-	\item \newcite{2008titov-summarization}: {\em A Joint Model of Text and Aspect Ratings for Sentiment Summarization.}
-\end{itemize}
-
-\section{Summaries of Articles}
+\section{Previous Work}
 \subsection{Automatically Assessing Review Helpfulness \cite{2006kim-helpfulness}}
 This paper was the earliest work present in the literature on the subject of assessing review helpfulness.
 The main idea of the paper was to use SVN regression on a large number of features,
@@ -107,141 +64,6 @@ Adding additional features tended to hurt performance; adding every feature
 	dropped the {\em MP3 Player} score to 0.601,
 	although mildly improving the {\em Digital Camera} score to 0.604.
 
-\subsection{Low-Quality Product Review Detection in Opinion Summarization \cite{2007liu-helpfulness}}
-
-This paper, like the previous, deals with identifying helpfulness in product reviews. 
-Unlike the previous; however, it is concerned with identifying {\em bad} reviews rather
-	than establishing a ranking of review helpfulness.
-Furthermore, the paper approaches the task in the context of improving summarization by excluding
-	poor quality reviews.
-
-The general approach of the paper is to re-define the qualities of a good review based on their
-	own criteria, which is shown to correlate with the corpus data.
-Then, an SVM is trained from this cleaner corpus, and a summarization system is run on the reviews
-	which are deemed to be good quality.
-Evaluation is done both on the helpfulness-detection and opinion-summarization aspects of the task.
-The paper uses the Amazon corpus of \newcite{2006kim-helpfulness}, taking only the {\em Digital Cameras}
-	portion. 
-
-As motivation for re-annotating reviews, the paper notes three types of bias in the Amazon corpus:
-\begin{itemize}
-	\item {\bf Imbalance vote bias}: users tend to value others' opinions positively.
-		Over half of the corpus has $>90\%$ {\em helpful} votes.
-	\item {\bf Winner circle bias}: the more votes a review gets, the more authority it appears to have.
-	\item {\bf Early bird bias}: the earlier a review is posted, the more votes it tends to get.
-\end{itemize}
-
-To adjust for this bias, reviews are re-ranked based by two human annotators based on a custom
-	specification for quality.
-Reviews are ranked as one of {\em best}, {\em good}, {\em fair}, and {\em bad}.
-{\em Best} reviews encompass many aspects of the review, with well-supported evidence and clear writing.
-{\em Bad} reviews are characterized by incorrect or misleading information, or off-topic rambling.
-Reviews which are {\em Bad} are considered low-quality; every other category is acceptable.
-
-The two hand-annotators were found to agree on this custom annotation often (the paper
-	reports a {\em kappa} statistic of 0.8142), however often disagree the
-	Amazon ground truth (the hand annotators would switch the order of two
-	Amazon reviews on their helpfulness rating nearly 45\% of the time).
-The authors justify that their ranking aligns better with a third annotator's judgement than
-	the Amazon ratings do.
-
-Training was done with a standard SVM classifier.
-The paper describes a large number of features used; the set is summarized roughly below:
-\begin{itemize}
-	\item {\bf Features on informativeness}: sentence statistics; word statistics; phrase features; product-features features.
-	\item {\bf Features on readability}: paragraph statistics; paragraph separator statistics.
-	\item {\bf Features on subjectiveness}: sentence sentiment statistics.
-\end{itemize}
-
-Evaluation was done by splitting the annotated set of the first annotator into two halves;
-	the first half was used as training data, and evaluation was done on both the second
-	half of the data and the entire corpus produced by the second annotator.
-The accuracy obtained on the first annotator's test set was 83.93\% (using all but
-	the {\em subjectiveness} features, while the accuracy
-	on the second annotator's complete corpus was 82.96\% (using all the features).
-Results using only the informativeness features would yield accuracies of 83.30\% and 82.37\%.
-
-The paper demonstrates that removing low quality reviews appears to improve the summarization task.
-It shows that less text fragments are extracted, and that the resulting summaries are significantly different.
-It shows that the summaries obtained by this filtering approach are closer to the expert reviews
-	collected from CNET.
-
-\subsection{Modeling and Predicting the Helpfulness of Online Reviews \cite{2008liu-helpfulness}}
-
-The approach taken in this paper is similar to the previous two (although note that the author
-	has no relation to \newcite{2007liu-helpfulness}); however, the authors focus on different features
-	and emphasize more strongly the training mechanism of the system.
-The paper tests on IMDB reviews.
-
-In addition to the insights into the task mentioned by either of the previous two papers (notably the early
-	bird and winner's circle biases), the authors note that spam votes are a non-negligible source of bias.
-
-The paper's approach is to characterize helpfulness on three factors:
-\begin{itemize}
-	\item {\bf Reviewer expertise}: users who frequently review a genre tend to be more helpful.
-	\item {\bf Writing style}: readable reviews tend to be more helpful.
-	\item {\bf Timeliness of review}: reviews posted early tend to be more helpful.
-\end{itemize}
-
-The dataset used in the paper was created by the authors by scraping the IMDB website.
-A total of 504 movies spanning 27 genres were collected between January 2006 and November 2007,
-	resulting in 94,919 reviews from 56,588 reviewers
-
-Training was done using an SVM classifier using a radial bias function (similar to \newcite{2006kim-helpfulness}).
-Each of the three main factors mentioned above is incorporated into the SVM. 
-Reviewer expertise was incorporated by measuring the similarity of the movie in question (represented as a vector
-	of its genres) to the movies previously reviewed by the reviewer.
-Reviewers who have reviewed less than a given threshold of movies were ignored for this aspect.
-Writing style was incorporated by taking statistics on shallow POS features (the paper claims lexical features
-	do not provide predictive power).
-Timeliness was incorporated by modeling the drop in review helpfulness as an exponential decay.
-
-The model evaluates both on deviation (similar to \newcite{2006kim-helpfulness}) and retreival (similar
-	to \newcite{2007liu-helpfulness}).
-The metrics used for these two tasks are {\em Mean Square Error} (MSE) and F$_1$ scores respectively.
-
-Results are given for varying a number of parameters in training; the best result reported is
-	an MSE score of 0.0332 and an F$_1$ score of 0.7116.
-This was better than the scores for taking any of the three factors independently, although no results
-	are given for any pairs of factors.
-
-\subsection{Designing Novel Review Ranking Systems: 
-	Predicting the Usefulness and Impact of Reviews \cite{2007ghose-helpfulness}}
-
-The paper's primary goal is to create a helpfulness analysis system 
-	for businesses to aid in in adapting to customer reviews.
-The paper uses its own dataset of reviews scraped from Amazon covering
-	a wider range of categories, though remaining in the realm of consumer electronics.
-The general strategy outlined in the paper is to first separate objective and subjective
-	sentences, and measure the effects of the subjective sentences on helpfulness.
-
-The dataset used in the paper consists of Amazon reviews from a number of consumer electronics
-	categories, although only the audio/video players and digital cameras were used.
-The data was collected between March 2005 and May 2006, and incorporates both review information
-	(text, stars, helpfulness), and product and sales data (price, sales rank, release date,
-	percentage sold as used).
-From statistics given in the paper, it appears there were 18,720 examples in total.
-
-The reviews are partitioned into sentences which are objective and those which are subjective.
-The paper opts for an approach they claim is similar in spirit to \cite{2004pang-mincuts}, training on
-	each type of review separately, and opting for a Dynamic Language Model classifier.
-Statistics (average, std. dev.) on 
-	the subjectivity of the entire review were compiled based on this per-sentence subjectivity
-	classification.
-
-Prediction of both sales rank and helpfulness were reported in the paper. 
-For the purposes of this summary, only the helpfulness aspect is reported on.
-
-Training was presented very briefly in the paper.
-It appears training was done using a linear classifier, using features including: 
-The log of the time since the product was published (a similar result to \cite{2008liu-helpfulness}
-	with their exponential decay);
-the log of the length of the review;
-and, the mean (fraction of) and standard deviation of subjective sentences.
-
-The paper reports F$_1$ scores for both the {\em Audio/Video} and {\em Digital Camera} categories as 0.85.
-
-
 \subsection{A Joint Model of Text and Aspect Ratings for Sentiment Summarization \cite{2008titov-summarization}}
 
 This paper presents an approach to summarization, jointly learning the topics to summarize and text which
@@ -276,94 +98,6 @@ To address this, the model classifies not over absolute ratings, but over the di
 
 Inference over the model was done using Gibbs sampling, as exact inference is intractable.
 The model achieves a precision of between 75\% and 85\% for the different aspects.
-
-
-\section{Comparison of Articles}
-
-\subsection{Comparison of Approaches}
-The papers presented in this review cover three tasks: helpfulness prediction, bad review detection,
-	and sentiment summarization. 
-
-The standard approach in more or less each of the helpfulness prediction and bad review detection
-	tasks (3 of the 4) was to train an SVM classifier on a set of features on the review.
-Furthermore, two of the papers were in agreement that radial bias functions provided the best kernel.
-
-\subsection{Comparison of Features}
-The characteristic difference between most of the systems is the features they use; and, by extension,
-	the phenomena they attempt to capture.
-
-Commonly used features included sentence and word level statistics 
-	\cite{2007liu-helpfulness} \cite{2006kim-helpfulness};
-	metadata such as stars or user information \cite{2008liu-helpfulness} \cite{2006kim-helpfulness};
-	sentiment-laden words \cite{2007liu-helpfulness} \cite{2008liu-helpfulness};
-	product features;
-	and time-sensitivity.
-
-The union of all the phenomena that these features attempt to capture, in turn, is enumerated below:
-\begin{itemize}
-	\item Reviewer expertise
-	\item Writing style
-	\item Timeliness
-	\item Imbalanced votes
-	\item {\em Winner's circle} phenomenon
-\end{itemize}
-
-\subsection{Comparison of Results}
-A notably discouraging theme among the papers is a lack of cross-referencing of results.
-In fact, nearly every paper has its own dataset, even when working in the same domain
-	as previous work.
-
-None the less, a comparison can be made on the effectiveness of various features
-	on the different domains.
-For example, while \newcite{2006kim-helpfulness} found length to be a valuable feature, the
-	results of \newcite{2008liu-helpfulness} reported the opposite finding.
-In a related vein, \newcite{2006kim-helpfulness} found that features on sentiment-laden
-	words was not significant, whereas \newcite{2007liu-helpfulness} opted for sentiment
-	features over shalow syntactic features.
-
-Furthermore, although the testing methodology of \newcite{2007ghose-helpfulness} is not entirely
-	well documented, their dataset can be considered similar to that of \newcite{2007liu-helpfulness}.
-Comparing the two papers, we see that the first reports an F$_1$ score of 85, while the second reports
-	accuracies of 83.93\% and 82.96\%.
-
-
-
-\section{Future Work}
-The work in the literature seems to have more or less exhaustively explored the area of helpfulness recognition
-	with simple features.
-Features which were not tried, or discounted without argument (e.g. features on parse trees, 
-	vocabulary sophistication, sentiment words expressing {\em modest} versus {\em bold}, etc.) seem unlikely
-	to have a large impact on performance.
-
-However, there do seem to be several less trivial extensions to the topic:
-
-\begin{itemize}
-	\item {\bf Time-aware features}: each of the current approaches handles time as an independent phenomenon.
-		Namely, as time progresses, review helpfulness goes down.
-		It seems more intuitive, however, to model the $n$th review's helpfulness in terms of the previous $n-1$
-			reviews, rather than as an independent review given a certain time after the product's posting.
-		In this way, it might be possible to differentiate posts repeat previous points (unhelpful)
-			and those which introduce new content (helpful).
-	\item {\bf Topic-aware features}: It seems useful to have a notion of exactly
-			what topics a post discusses, and whether these are valuable; or, combined with the above point, whether
-			they are novel.
-		This is similar to some extent to the product-features features, but should optimally be more coarse-grained.
-		For instance, describing the focal length of a camera and its lens are far closer in topic than, say, battery
-			life and its lens.
-	\item {\bf Deeper summarization integration}: Although one paper described using helpfulness to assist in
-			summarization, it seems as if the integration could be made tighter.
-		The two tasks seem inherently similar: identifying useful reviews or parts of reviews.
-		Particularly if point 2 is feasible, it does not seem like a far jump to pick the most helpful text segments
-			(based on other features) from each topic to provide an aggregate review.
-\end{itemize}
-
-These extensions can be roughly summarized as an attempt to capture the underlying process which contributes to
-	the helpful/unhelpful reviews, as opposed to treating the variation as noise (e.g. exponential decay on
-	time since publication), or ignoring the ground truth altogether \cite{2007liu-helpfulness}.
-
-The most important of the three points I believe is the second one: identifying topics in 
-	reviews which users find helpful; this is the topic I hope to pursue in my final project.
-
 
 \bibliographystyle{acl}
 \bibliography{main}
