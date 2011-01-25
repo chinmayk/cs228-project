@@ -17,13 +17,14 @@
 
 \begin{abstract}
 This report presents an approach to predicting the helpfulness of a 
-	movie review, taking an approach which considers new topics introduced over time
-	and which attempts to separate extrinsic {\em noise} factors in intrinsic factors.
+	movie review, taking an approach which considers new topics introduced 
+	over time and which attempts to separate extrinsic {\em noise} factors 
+	from intrinsic factors.
 \end{abstract}
 
 
 \section{Problem Statement}
-Online reviews have become popular in number of domains, such as products, restaurants, and movies. Crowdsourced reviews are useful in presenting a diverse range of opinions as well as catering to a wide-range of information needs. 
+Online reviews have become popular in a number of domains, such as products, restaurants, and movies. Crowdsourced reviews are useful in presenting a diverse range of opinions as well as catering to a wide-range of information needs. 
 
 However, with the increasing number of online reviews comes the related problem of gauging the quality and helpfulness of a review. Several websites now allow their users to mark reviews as helpful or not. Such manual ratings, however, may be sparse. For instance, reviews that have been recently created may have few ratings. Furthermore, a review about a product that already has many reviews would be less frequently seen by visitors, and so less likely to have a manual rating.  
 
@@ -47,7 +48,7 @@ The helpfulness rating provided by human annotators is considered the {\em extri
 A more detailed justification for both hypotheses  is provided in \refsec{preliminary}.
 
 \subsection{Applications}
-Automatically assigning helpfulness to an online review has possibly many applications. One application is to predict helpfulness of reviews which do not yet have a well-established human-annotated rating (such as newly-created reviews, or reviews for popular products with several other reviews).  Another application is text summarization. In this case, reviews that are more helpful should receive a higher weighting in the summarization task. Current summarization systems tend to consider all reviews as  equally informative {\em a priori}.
+Automatically assigning helpfulness to an online review has many applications. One application is to predict helpfulness of reviews which do not yet have a well-established human-annotated rating (such as newly-created reviews, or reviews for popular products with several other reviews).  Another application is text summarization. In this case, reviews that are more helpful should receive a higher weighting in the summarization task. Current summarization systems tend to consider all reviews as  equally informative {\em a priori}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % IMPLEMENTATION
@@ -66,7 +67,8 @@ The model is shown in \reffig{model}.
 Observed variables are colored grey;
 The feature variables (i.e. {\em Lexical Features}, {\em Structural Features}, 
 	etc) are compressed into a single node for illustrative purposes;
-	these nodes would either be split into individual features.
+	these nodes would either be split into individual features or modeled
+	in some structured way.
 The variable we are interested in ({\em Extrinsic Helpfulness \%}) is marked
 	in blue.
 A node denoting the number of new topics introduced in the review is marked
@@ -76,12 +78,12 @@ The essence of the model is to represent the two hypotheses presented in the
 	introduction. 
 The decoupling of observations into {\em extrinsic} and
 	{\em intrinsic} influences is done by placing the nodes at the top
-	of the graph (influencing {\em Observed Helpfulness \%}), or at the bottom
+	of the graph (influencing {\em Extrinsic Helpfulness \%}), or at the bottom
 	(a result of {\em Intrinsic Helpfulness \%}).
-Observed helpfulness is in turn affected by a notion of intrinsic helpfulness
+Extrinsic helpfulness is in turn affected by a notion of intrinsic helpfulness
 	in conjunction with the noise factors.
-The features used for this part of the model align roughly with those of
-	\newcite{2006kim-helpfulness}.
+The features used for this part of the model would likely align roughly with 
+	those of \newcite{2006kim-helpfulness} and other similar work.
 
 The second hypothesis is modeled by the red node {\em Number of New Topics}.
 This will be an implementation of LDA, either trained separately from or
@@ -92,39 +94,47 @@ The paper by \newcite{2008titov-summarization} attempts a similar technique
 A directed model was chosen since the intuition of the problem appears to
 	be causal in nature.
 %	align well with a directed model paradigm.
-For instance, {\em True Helpfulness} is a factor in causing the value of
-	{\em Observed Helpfulness}, in conjunction with the other extrinsic
+For instance, {\em Intrinsic Helpfulness} is a factor in causing the value of
+	{\em Extrinsic Helpfulness}, in conjunction with the other extrinsic
 	causes.
-Similarly, {\em New Topics} causes a higher helpfulness, etc.
+Similarly, {\em New Topics} causes a higher helpfulness; and so forth.
 
 \subsection{Training}
 The problem as presented is a supervised training problem.
-Pairs of reviews and their associated observed helpfulness are provided at
+Pairs of reviews and their associated extrinsic helpfulness are provided at
 	training time.
-At test time, the task is to predict the observed helpfulness from the review
+At test time, the task is to predict the extrinsic helpfulness from the review
 	and other reviews from the same item.
 
 The data used for these experiments is taken from the IMDB corpus, which
 	consists of a total of 45,772 movies and 1,808,564 reviews.
-In all likelihood only a small subset of the corpus will be used.
-We have access to this corpus.
+In all likelihood only a small subset of the corpus will be used;
+	we have access to this corpus.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PRELIMINARY RESEARCH
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \Section{preliminary}{Preliminary Research}
 
-This project builds off of a project done for cs424 last quarter.
+This project extends off of a project done for cs424 last quarter.
 That project consisted of training a simple classifier with features
 	defined both over the {\em extrinsic} and {\em intrinsic} features.
 The results of the project were reasonable (Pearson correlation of 0.486)
 	though by no means good.
 Furthermore, the most useful features in the model were the ones that
 	effectively modeled the noise in the rating process, suggesting the
-	feasibility of {\bf Hyp1}.
+	feasibility of {\bf Hyp2}.
+
+The first hypothesis is roughly approximated by counting the number of
+	new unique words in a review and correlating it with the average helpfulness
+	of that review.
+This trend is presented in \reffig{newwords}.
+However, this graph conflates the percentage of new words with the number of
+	reviews already seen, and hence may not be indicative of the validity
+	of our hypothesis.
 
 Statistics were collected on the dataset to support the two hypotheses.
-The first hypothesis is supported by correlations between extrinsic
+The second hypothesis is supported by correlations between extrinsic
 	factors and extrinsic helpfulness.
 For instance, \reffig{postindex} shows a negative correlation between the
 	post index of a review and its helpfulness.
@@ -149,13 +159,6 @@ Similarly, \reffig{otherreviews} shows a strong correlation between the
 	for 1000 buckets of Other Review Helpfulness ($x$).
 }
 
-The second hypothesis is roughly approximated by counting the number of
-	new unique words in a review and correlating it with the average helpfulness
-	of that review.
-This trend is presented in \reffig{newwords}.
-However, this graph conflates the percentage of new words with the number of
-	reviews already seen, and hence may not be indicative of the validity
-	of our hypothesis.
 
 \Fig{fig/plot/helpfulGivenNewWordsAve.png}{0.30}{newwords}{
 	The correlation between the percentage of unique words in the review
@@ -172,7 +175,7 @@ However, this graph conflates the percentage of new words with the number of
 
 \Section{previous}{Previous Work}
 This section details some of the previous work done in the field.
-The first briefly describes one of the first and most prototypical papers
+The first briefly describes one of the initial characteristic papers
 	on assessing review helpfulness.
 The second presents an approach to jointly performing text summarization
 	and topic modeling; this approach appears relevant to our task.
